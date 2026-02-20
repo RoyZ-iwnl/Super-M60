@@ -20,7 +20,7 @@ namespace SuperM60
     public static class M60A1
     {
         static readonly string[] gas_valid_ammo = { "M900A1 APFSDS-T", "M393A3 HEP-T" };
-        static readonly string[] vic_names = { "M60A1 RISE (Passive)", "M60A1 AOS", "M60A1" };
+        static readonly string[] vic_names = { "M60A1 RISE (Passive)", "M60A1 RISE (Passive) '77", "M60A1 AOS", "M60A1" };
 
         static MelonPreferences_Entry<bool> useM900A2, betterLoader, betterCommander, betterGunner;
         static MelonPreferences_Entry<int> firstAmmoCount, secondAmmoCount, thirdAmmoCount;
@@ -85,6 +85,7 @@ namespace SuperM60
                     ApplyUniformArmor(ua);
                 }
 
+                string originalName = vic.FriendlyName;
                 vic._friendlyName = "M60A1A4";
 
                 WeaponsManager weaponsManager = vic.GetComponent<WeaponsManager>();
@@ -124,10 +125,8 @@ namespace SuperM60
 
                 // Optics
                 var gpsTransform = vic_go.transform.Find("M60A3TTS_rig/hull/turret/Turret Scripts/Sights/GPS/");
-                var gasOptic = vic_go.transform.Find("M60A3TTS_rig/hull/turret/main gun mantlet/Gun Scripts/Aux sight M105D/").GetComponent<CameraSlot>();
+                var gasTransform = vic_go.transform.Find("M60A3TTS_rig/hull/turret/main gun mantlet/Gun Scripts/Aux sight M105D/");
                 var roofOptic = vic_go.transform.Find("M60A3TTS_rig/hull/turret/cupola/cupola mantlet/M85 gunsight/");
-                var roofCS = roofOptic.GetComponent<CameraSlot>();
-                var roofUO = roofOptic.GetComponent<UsableOptic>();
 
                 if (gpsTransform != null)
                 {
@@ -140,10 +139,14 @@ namespace SuperM60
                     gpsOptic.VibrationShakeMultiplier = 0.2f;
                 }
 
-                gasOptic.DefaultFov = 6.5f;
-                gasOptic.OtherFovs = new float[] { 4.5f, 2.5f, 1.5f };
-                gasOptic.VibrationBlurScale = 0.1f;
-                gasOptic.VibrationShakeMultiplier = 0.2f;
+                if (gasTransform != null)
+                {
+                    var gasOptic = gasTransform.GetComponent<CameraSlot>();
+                    gasOptic.DefaultFov = 6.5f;
+                    gasOptic.OtherFovs = new float[] { 4.5f, 2.5f, 1.5f };
+                    gasOptic.VibrationBlurScale = 0.1f;
+                    gasOptic.VibrationShakeMultiplier = 0.2f;
+                }
 
                 mainGun.FCS.ComputerNeedsPower = false;
 
@@ -180,27 +183,26 @@ namespace SuperM60
                     vicVC.wheels[i].wheelController.sFriction.slipCoefficient = 1f;
                 }
 
-                // Stabilizers
-                vic.AimablePlatforms[0].SpeedPowered = 60;
-                vic.AimablePlatforms[0].SpeedUnpowered = 60;
-                vic.AimablePlatforms[0]._stabActive = true;
-                vic.AimablePlatforms[0].StabilizerActive = true;
-                vic.AimablePlatforms[0]._stabMode = StabilizationMode.Vector;
-                vic.AimablePlatforms[1].SpeedPowered = 40;
-                vic.AimablePlatforms[1].SpeedUnpowered = 40;
-                vic.AimablePlatforms[1]._stabActive = true;
-                vic.AimablePlatforms[1].StabilizerActive = true;
-                vic.AimablePlatforms[1]._stabMode = StabilizationMode.Vector;
-                vic.AimablePlatforms[1].LocalEulerLimits = new Vector2(-17, 65);
-                vic.AimablePlatforms[2].SpeedPowered = 40;
-                vic.AimablePlatforms[2].SpeedUnpowered = 20;
-                vic.AimablePlatforms[2]._stabMode = StabilizationMode.WorldPoint;
-                vic.AimablePlatforms[3].SpeedPowered = 40;
-                vic.AimablePlatforms[3].SpeedUnpowered = 20;
-                vic.AimablePlatforms[3]._stabMode = StabilizationMode.WorldPoint;
+                // Stabilizers — only base M60A1 lacks one; [2]=Gun Scripts, [3]=Turret Scripts
+                if (originalName == "M60A1")
+                {
+                    vic.AimablePlatforms[2].Stabilized = true;
+                    vic.AimablePlatforms[2]._stabActive = true;
+                    vic.AimablePlatforms[2].StabilizerActive = true;
+                    vic.AimablePlatforms[2]._stabMode = StabilizationMode.WorldPoint;
+                    vic.AimablePlatforms[2].SpeedPowered = 40;
+                    vic.AimablePlatforms[2].SpeedUnpowered = 40;
+                    vic.AimablePlatforms[3].Stabilized = true;
+                    vic.AimablePlatforms[3]._stabActive = true;
+                    vic.AimablePlatforms[3].StabilizerActive = true;
+                    vic.AimablePlatforms[3]._stabMode = StabilizationMode.WorldPoint;
+                    vic.AimablePlatforms[3].SpeedPowered = 60;
+                    vic.AimablePlatforms[3].SpeedUnpowered = 60;
+                    mainGun.FCS.StabsActive = true;
+                    mainGun.FCS.CurrentStabMode = StabilizationMode.WorldPoint;
+                }
 
                 // Roof gun
-                roofGun.FCS._fixParallaxForVectorMode = true;
                 roofGun.FCS.SuperelevateWeapon = true;
                 roofGun.FCS.SuperleadWeapon = true;
                 roofGun.FCS.LaserAim = LaserAimMode.ImpactPoint;
@@ -208,18 +210,20 @@ namespace SuperM60
                 roofGun.FCS.DefaultRange = 600;
                 roofGun.FCS.RegisteredRangeLimits = new Vector2(100, 4000);
                 roofGun.FCS.MarkRangeInvalidBelow = 100;
-                roofGun.FCS.CurrentStabMode = StabilizationMode.Vector;
-                roofGun.FCS.StabsActive = true;
 
-                roofUO.Alignment = OpticAlignment.FcsRange;
-                roofUO.ForceHorizontalReticleAlign = true;
-                roofUO.RotateElevation = true;
-                roofUO.RotateAzimuth = true;
-
-                roofCS.DefaultFov = 25f;
-                roofCS.OtherFovs = new float[] { 16.5f, 6.5f, 3.472f, 1.204f };
-                roofCS.VibrationBlurScale = 0;
-                roofCS.VibrationShakeMultiplier = 0;
+                if (roofOptic != null)
+                {
+                    var roofUO = roofOptic.GetComponent<UsableOptic>();
+                    var roofCS = roofOptic.GetComponent<CameraSlot>();
+                    roofUO.Alignment = OpticAlignment.FcsRange;
+                    roofUO.ForceHorizontalReticleAlign = true;
+                    roofUO.RotateElevation = true;
+                    roofUO.RotateAzimuth = true;
+                    roofCS.DefaultFov = 25f;
+                    roofCS.OtherFovs = new float[] { 16.5f, 6.5f, 3.472f, 1.204f };
+                    roofCS.VibrationBlurScale = 0;
+                    roofCS.VibrationShakeMultiplier = 0;
+                }
 
                 if (betterLoader.Value)
                 {
@@ -233,24 +237,21 @@ namespace SuperM60
 
                 if (betterCommander.Value)
                 {
-                    vicUAI.SpotTimeMaxDistance = 3500;
-                    vicUAI.TargetSensor._spotTimeMax = 3;
-                    vicUAI.TargetSensor._spotTimeMaxDistance = 500;
-                    vicUAI.TargetSensor._spotTimeMaxVelocity = 7f;
-                    vicUAI.TargetSensor._spotTimeMin = 1;
-                    vicUAI.TargetSensor._spotTimeMinDistance = 50;
-                    vicUAI.TargetSensor._trackedTargetCooldown = 1.5f;
-                    vicUAI.CommanderAI._identifyTargetDurationRange = new Vector2(1.5f, 2.5f);
-                    vicUAI.CommanderAI._sweepCommsCheckDuration = 4;
+                    vicUAI.SpotTimeMaxDistance *= 1.35f;
+                    vicUAI.TargetSensor._spotTimeMax *= 0.65f;
+                    vicUAI.TargetSensor._spotTimeMaxDistance *= 1.35f;
+                    vicUAI.TargetSensor._spotTimeMin *= 0.65f;
+                    vicUAI.CommanderAI._identifyTargetDurationRange *= new Vector2(0.65f, 0.65f);
+                    vicUAI.CommanderAI._sweepCommsCheckDuration *= 0.65f;
                 }
 
                 if (betterGunner.Value)
                 {
                     vicUAI.combatSpeedLimit = 25;
                     vicUAI.firingSpeedLimit = 20;
-                    vicUAI.AccuracyModifiers.Angle.MaxDistance = 2500;
-                    vicUAI.AccuracyModifiers.Angle.MaxRadius = 2.5f;
-                    vicUAI.AccuracyModifiers.Angle.MinRadius = 1.5f;
+                    vicUAI.AccuracyModifiers.Angle.MaxDistance *= 1.35f;
+                    vicUAI.AccuracyModifiers.Angle.MaxRadius *= 0.65f;
+                    vicUAI.AccuracyModifiers.Angle.MinRadius *= 0.65f;
                     vicUAI.AccuracyModifiers.Angle.IncreaseAccuracyPerShot = false;
                 }
             }
