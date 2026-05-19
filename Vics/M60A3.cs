@@ -259,8 +259,6 @@ namespace SuperM60
                     vicUAI.TargetSensor._spotTimeMax *= 0.65f;
                     vicUAI.TargetSensor._spotTimeMaxDistance *= 1.35f;
                     vicUAI.TargetSensor._spotTimeMin *= 0.65f;
-                    vicUAI.CommanderAI._identifyTargetDurationRange *= new Vector2(0.65f, 0.65f);
-                    vicUAI.CommanderAI._sweepCommsCheckDuration *= 0.65f;
                 }
 
                 if (betterGunner.Value)

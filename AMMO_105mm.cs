@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using GHPC.Effects;
 using GHPC.Weapons;
 using GHPC.Weaponry;
 using MelonLoader;
@@ -7,33 +8,40 @@ using UnityEngine;
 
 namespace SuperM60
 {
-    public class AMMO_105mm
+    public class AMMO_105mm : Module
     {
         public static AmmoClipCodexScriptable clip_codex_m900a1;
         public static AmmoType.AmmoClip clip_m900a1;
         public static AmmoType ammo_m900a1;
+        public static AmmoCodexScriptable codex_m900a1;
 
         public static AmmoClipCodexScriptable clip_codex_m900a2;
         public static AmmoType.AmmoClip clip_m900a2;
         public static AmmoType ammo_m900a2;
+        public static AmmoCodexScriptable codex_m900a2;
 
         public static AmmoClipCodexScriptable clip_codex_m393a3;
         public static AmmoType.AmmoClip clip_m393a3;
         public static AmmoType ammo_m393a3;
+        public static AmmoCodexScriptable codex_m393a3;
 
         public static AmmoClipCodexScriptable clip_codex_m456a3;
         public static AmmoType.AmmoClip clip_m456a3;
         public static AmmoType ammo_m456a3;
+        public static AmmoCodexScriptable codex_m456a3;
 
         public static AmmoClipCodexScriptable clip_codex_m8api;
         public static AmmoType.AmmoClip clip_m8api;
         public static AmmoType ammo_m8api;
+        public static AmmoCodexScriptable codex_m8api;
 
         public static AmmoClipCodexScriptable clip_codex_m2apt;
         public static AmmoType.AmmoClip clip_m2apt;
         public static AmmoType ammo_m2apt;
+        public static AmmoCodexScriptable codex_m2apt;
 
         public static MelonPreferences_Entry<int> hepFragments;
+        private static bool assets_loaded = false;
 
         public static void Config(MelonPreferences_Category cfg)
         {
@@ -41,9 +49,26 @@ namespace SuperM60
             hepFragments.Description = "How many fragments are generated when the below round explodes. NOTE: Higher number, means higher performance hit. Be careful in using higher number.";
         }
 
-        public static void Init()
+        public override void LoadStaticAssets()
         {
-            if (ammo_m393a3 != null) return;
+            string[] target_vehicles = new string[] {
+                "M60A1RISEP", 
+                "M60A1RISEP77", 
+                "M60A1", 
+                "M60A1AOS", 
+                "M60A3"
+            };
+
+            foreach (string name in target_vehicles)
+            {
+                AssetUtil.LoadVanillaVehicle(name);
+            }
+        }
+
+        public static void LoadAssets()
+        {
+            if (assets_loaded) return;
+            assets_loaded = true;
 
             AmmoType ammo_m833 = null, ammo_m456 = null, ammo_m8vnl = null;
 
@@ -77,6 +102,7 @@ namespace SuperM60
             // M900A1
             ammo_m900a1 = new AmmoType();
             Util.ShallowCopy(ammo_m900a1, ammo_m833);
+            ammo_m900a1.CachedIndex = -1;
             ammo_m900a1.Name = "M900A1 APFSDS-T";
             ammo_m900a1.RhaPenetration = 550f;
             ammo_m900a1.MuzzleVelocity = 1505f;
@@ -87,7 +113,7 @@ namespace SuperM60
             ammo_m900a1.Coeff = 0.07f;
             ammo_m900a1.CertainRicochetAngle = 9;
 
-            var codex_m900a1 = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
+            codex_m900a1 = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
             codex_m900a1.AmmoType = ammo_m900a1; codex_m900a1.name = "ammo_m900a1";
 
             clip_m900a1 = new AmmoType.AmmoClip();
@@ -97,9 +123,16 @@ namespace SuperM60
             clip_codex_m900a1 = ScriptableObject.CreateInstance<AmmoClipCodexScriptable>();
             clip_codex_m900a1.name = "clip_m900a1"; clip_codex_m900a1.ClipType = clip_m900a1;
 
+            GameObject vis_m900a1 = GameObject.Instantiate(ammo_m833.VisualModel);
+            vis_m900a1.name = "M900A1 visual";
+            ammo_m900a1.VisualModel = vis_m900a1;
+            vis_m900a1.GetComponent<AmmoStoredVisual>().AmmoType = ammo_m900a1;
+            vis_m900a1.GetComponent<AmmoStoredVisual>().AmmoScriptable = codex_m900a1;
+
             // M900A2
             ammo_m900a2 = new AmmoType();
             Util.ShallowCopy(ammo_m900a2, ammo_m833);
+            ammo_m900a2.CachedIndex = -1;
             ammo_m900a2.Name = "M900A2 APFSDS-T";
             ammo_m900a2.RhaPenetration = 580f;
             ammo_m900a2.MuzzleVelocity = 1600f;
@@ -110,7 +143,7 @@ namespace SuperM60
             ammo_m900a2.CertainRicochetAngle = 9;
             ammo_m900a2.ArmorOptimizations = era_optimizations_m900a2.ToArray();
 
-            var codex_m900a2 = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
+            codex_m900a2 = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
             codex_m900a2.AmmoType = ammo_m900a2; codex_m900a2.name = "ammo_m900a2";
 
             clip_m900a2 = new AmmoType.AmmoClip();
@@ -120,9 +153,16 @@ namespace SuperM60
             clip_codex_m900a2 = ScriptableObject.CreateInstance<AmmoClipCodexScriptable>();
             clip_codex_m900a2.name = "clip_m900a2"; clip_codex_m900a2.ClipType = clip_m900a2;
 
+            GameObject vis_m900a2 = GameObject.Instantiate(ammo_m833.VisualModel);
+            vis_m900a2.name = "M900A2 visual";
+            ammo_m900a2.VisualModel = vis_m900a2;
+            vis_m900a2.GetComponent<AmmoStoredVisual>().AmmoType = ammo_m900a2;
+            vis_m900a2.GetComponent<AmmoStoredVisual>().AmmoScriptable = codex_m900a2;
+
             // M456A3
             ammo_m456a3 = new AmmoType();
             Util.ShallowCopy(ammo_m456a3, ammo_m456);
+            ammo_m456a3.CachedIndex = -1;
             ammo_m456a3.Name = "M456A3 HEAT-FS-T";
             ammo_m456a3.RhaPenetration = 450f;
             ammo_m456a3.MuzzleVelocity = 1174f;
@@ -138,7 +178,7 @@ namespace SuperM60
             ammo_m456a3.Coeff = 0.16f;
             ammo_m456a3.ArmorOptimizations = era_optimizations_m456a3.ToArray();
 
-            var codex_m456a3 = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
+            codex_m456a3 = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
             codex_m456a3.AmmoType = ammo_m456a3; codex_m456a3.name = "ammo_m456a3";
 
             clip_m456a3 = new AmmoType.AmmoClip();
@@ -148,9 +188,16 @@ namespace SuperM60
             clip_codex_m456a3 = ScriptableObject.CreateInstance<AmmoClipCodexScriptable>();
             clip_codex_m456a3.name = "clip_m456a3"; clip_codex_m456a3.ClipType = clip_m456a3;
 
+            GameObject vis_m456a3 = GameObject.Instantiate(ammo_m456.VisualModel);
+            vis_m456a3.name = "M456A3 visual";
+            ammo_m456a3.VisualModel = vis_m456a3;
+            vis_m456a3.GetComponent<AmmoStoredVisual>().AmmoType = ammo_m456a3;
+            vis_m456a3.GetComponent<AmmoStoredVisual>().AmmoScriptable = codex_m456a3;
+
             // M393A3
             ammo_m393a3 = new AmmoType();
             Util.ShallowCopy(ammo_m393a3, ammo_m456);
+            ammo_m393a3.CachedIndex = -1;
             ammo_m393a3.Name = "M393A3 HEP-T";
             ammo_m393a3.RhaPenetration = 50f;
             ammo_m393a3.MuzzleVelocity = 750f;
@@ -168,7 +215,7 @@ namespace SuperM60
             ammo_m393a3.ShortName = AmmoType.AmmoShortName.He;
             ammo_m393a3.RhaToFuse = 15f;
 
-            var codex_m393a3 = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
+            codex_m393a3 = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
             codex_m393a3.AmmoType = ammo_m393a3; codex_m393a3.name = "ammo_m393a3";
 
             clip_m393a3 = new AmmoType.AmmoClip();
@@ -178,9 +225,16 @@ namespace SuperM60
             clip_codex_m393a3 = ScriptableObject.CreateInstance<AmmoClipCodexScriptable>();
             clip_codex_m393a3.name = "clip_m393a3"; clip_codex_m393a3.ClipType = clip_m393a3;
 
+            GameObject vis_m393a3 = GameObject.Instantiate(ammo_m456.VisualModel);
+            vis_m393a3.name = "M393A3 visual";
+            ammo_m393a3.VisualModel = vis_m393a3;
+            vis_m393a3.GetComponent<AmmoStoredVisual>().AmmoType = ammo_m393a3;
+            vis_m393a3.GetComponent<AmmoStoredVisual>().AmmoScriptable = codex_m393a3;
+
             // M2 AP-T
             ammo_m2apt = new AmmoType();
             Util.ShallowCopy(ammo_m2apt, ammo_m8vnl);
+            ammo_m2apt.CachedIndex = -1;
             ammo_m2apt.Name = "12.7x99mm M2 AP-T";
             ammo_m2apt.RhaPenetration = 29f;
             ammo_m2apt.MuzzleVelocity = 887;
@@ -191,7 +245,7 @@ namespace SuperM60
             ammo_m2apt.SpallMultiplier = 10f;
             ammo_m2apt.UseTracer = true;
 
-            var codex_m2apt = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
+            codex_m2apt = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
             codex_m2apt.AmmoType = ammo_m2apt; codex_m2apt.name = "ammo_m2apt";
 
             clip_m2apt = new AmmoType.AmmoClip();
@@ -204,6 +258,7 @@ namespace SuperM60
             // M8 AP-I
             ammo_m8api = new AmmoType();
             Util.ShallowCopy(ammo_m8api, ammo_m8vnl);
+            ammo_m8api.CachedIndex = -1;
             ammo_m8api.Name = "12.7x99mm M8 AP-I";
             ammo_m8api.RhaPenetration = 29f;
             ammo_m8api.MuzzleVelocity = 887;
@@ -214,7 +269,7 @@ namespace SuperM60
             ammo_m8api.SpallMultiplier = 20f;
             ammo_m8api.UseTracer = true;
 
-            var codex_m8api = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
+            codex_m8api = ScriptableObject.CreateInstance<AmmoCodexScriptable>();
             codex_m8api.AmmoType = ammo_m8api; codex_m8api.name = "ammo_m8api";
 
             clip_m8api = new AmmoType.AmmoClip();
@@ -223,31 +278,20 @@ namespace SuperM60
 
             clip_codex_m8api = ScriptableObject.CreateInstance<AmmoClipCodexScriptable>();
             clip_codex_m8api.name = "clip_m8api"; clip_codex_m8api.ClipType = clip_m8api;
+        }
 
-            // Visual models
-            GameObject vis_m900a1 = GameObject.Instantiate(ammo_m833.VisualModel);
-            vis_m900a1.name = "M900A1 visual";
-            ammo_m900a1.VisualModel = vis_m900a1;
-            vis_m900a1.GetComponent<AmmoStoredVisual>().AmmoType = ammo_m900a1;
-            vis_m900a1.GetComponent<AmmoStoredVisual>().AmmoScriptable = codex_m900a1;
+        public static void Init()
+        {
+            if (ammo_m393a3 != null) return;
 
-            GameObject vis_m900a2 = GameObject.Instantiate(ammo_m833.VisualModel);
-            vis_m900a2.name = "M900A2 visual";
-            ammo_m900a2.VisualModel = vis_m900a2;
-            vis_m900a2.GetComponent<AmmoStoredVisual>().AmmoType = ammo_m900a2;
-            vis_m900a2.GetComponent<AmmoStoredVisual>().AmmoScriptable = codex_m900a2;
+            LoadAssets();
 
-            GameObject vis_m456a3 = GameObject.Instantiate(ammo_m456.VisualModel);
-            vis_m456a3.name = "M456A3 visual";
-            ammo_m456a3.VisualModel = vis_m456a3;
-            vis_m456a3.GetComponent<AmmoStoredVisual>().AmmoType = ammo_m456a3;
-            vis_m456a3.GetComponent<AmmoStoredVisual>().AmmoScriptable = codex_m456a3;
-
-            GameObject vis_m393a3 = GameObject.Instantiate(ammo_m456.VisualModel);
-            vis_m393a3.name = "M393A3 visual";
-            ammo_m393a3.VisualModel = vis_m393a3;
-            vis_m393a3.GetComponent<AmmoStoredVisual>().AmmoType = ammo_m393a3;
-            vis_m393a3.GetComponent<AmmoStoredVisual>().AmmoScriptable = codex_m393a3;
+            Util.CacheAmmo(ammo_m900a1);
+            Util.CacheAmmo(ammo_m900a2);
+            Util.CacheAmmo(ammo_m456a3);
+            Util.CacheAmmo(ammo_m393a3);
+            Util.CacheAmmo(ammo_m2apt);
+            Util.CacheAmmo(ammo_m8api);
         }
     }
 }

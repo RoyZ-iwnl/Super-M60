@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using GHPC.Equipment.Optics;
+using GHPC.Effects;
 using GHPC.Weapons;
 using UnityEngine;
 
@@ -14,6 +15,8 @@ namespace SuperM60
 
     public class Util
     {
+        public static ImpactEffectsDatabaseScriptable impact_fx_db;
+
         public static string[] menu_screens = new string[] {
             "MainMenu2_Scene",
             "MainMenu2-1_Scene",
@@ -21,6 +24,19 @@ namespace SuperM60
             "LOADER_INITIAL",
             "t64_menu"
         };
+
+        public static void CacheAmmo(AmmoType ammo)
+        {
+            if (impact_fx_db == null)
+            {
+                impact_fx_db = Resources.FindObjectsOfTypeAll<ImpactEffectsDatabaseScriptable>()[0];
+            }
+
+            int id;
+            ImpactDecalsManager.Instance._ImpactDecalsScriptable.CacheNewData(ammo, out id);
+            impact_fx_db.CacheNewData(ammo, out id);
+            ammo.CachedIndex = id;
+        }
 
         public static void ShallowCopy(System.Object dest, System.Object src)
         {
